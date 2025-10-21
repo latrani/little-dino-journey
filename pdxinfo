@@ -1,0 +1,6 @@
+name=Little Dino Journey
+author=Indi Timberpath
+description=A puzzle platformer
+bundleID=net.latrani.ldj
+version=0.0.1
+buildNumber=1
