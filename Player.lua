@@ -12,6 +12,7 @@ function Player:init(x, y)
   self:addState("idle", 1, 1)
   self:addState("run", 1, 1)
   self:addState("jump", 1, 1)
+  self:addState("curl", 2, 2)
   self:addState("roll", 2, 2)
   self:playAnimation()
 
@@ -23,23 +24,24 @@ function Player:init(x, y)
   self.xVelocity = 0
   self.yVelocity = 0
   self.gravity = 1.0
-  self.maxSpeed = 2.0
+  self.runSpeed = 2.0
+  self.airSpeed = 2.0
+  self.rollSpeed = 4.0
   self.jumpVelocity = -3.6
   self.drag = 0.1
   self.minAirSpeed = 0.5
+  self.canJump = true
 
   self.touchingGround = false
   self.touchingWall = false
   self.touchingCeiling = false
 end
 
-function Player:doSetCollideRect(rect)
-  if rect == "roll" then
+function Player:doSetCollideRect()
+  if self.currentState == "roll" or self.currentState == "curl" then
     self:setCollideRect(24, 0, 16, 16)
-    print("Roll collide rect")
   else
     self:setCollideRect(22, 0, 20, 16)
-    print("Default collide rect")
   end
 end
 
@@ -58,7 +60,13 @@ function Player:handleState()
   if self.currentState == "idle" then
     self:applyGravity()
     self:handleGroundInput()
+  elseif self.currentState == "curl" then
+    self:applyGravity()
+    self:handleGroundInput()
   elseif self.currentState == "run" then
+    self:applyGravity()
+    self:handleGroundInput()
+  elseif self.currentState == "roll" then
     self:applyGravity()
     self:handleGroundInput()
   elseif self.currentState == "jump" then
@@ -68,9 +76,6 @@ function Player:handleState()
     self:applyGravity()
     self:applyDrag()
     self:handleAirInput()
-  elseif self.currentState == "roll" then
-    self:applyGravity()
-    self:handleRollInput()
   end
 end
 
@@ -102,60 +107,73 @@ function Player:handleMovementAndCollisions()
 end
 
 function Player:handleGroundInput()
-  if pd.buttonJustPressed(pd.kButtonA) then
+  local crankChange = pd.getCrankChange()
+  if pd.buttonJustPressed(pd.kButtonA) and self.canJump then
     self:changeToJumpState()
-  elseif pd.buttonJustPressed(pd.kButtonB) then
-    self:doSetCollideRect("roll")
-    self:changeToRollState()
   elseif pd.buttonIsPressed(pd.kButtonLeft) then
     self:changeToRunState("left")
   elseif pd.buttonIsPressed(pd.kButtonRight) then
     self:changeToRunState("right")
-  else
+  elseif crankChange < 0 then
+    self:changeToRollState("left")
+  elseif crankChange > 0 then
+    self:changeToRollState("right")
+  elseif self.currentState == "roll" then
+    self:changeToCurlState()
+  elseif self.currentState ~= "curl" then
     self:changeToIdleState()
   end
+  self:doSetCollideRect()
 end
 
 function Player:handleAirInput()
   if pd.buttonIsPressed(pd.kButtonLeft) then
-    self.xVelocity = -self.maxSpeed
+    self.xVelocity = -self.airSpeed
   elseif pd.buttonIsPressed(pd.kButtonRight) then
-    self.xVelocity = self.maxSpeed
-  end
-end
-
-function Player:handleRollInput()
-  if pd.buttonIsPressed(pd.kButtonLeft) then
-    self.xVelocity = -self.maxSpeed
-  elseif pd.buttonIsPressed(pd.kButtonRight) then
-    self.xVelocity = self.maxSpeed
-  elseif pd.buttonJustPressed(pd.kButtonB) then
-    self:doSetCollideRect()
-    self:changeToIdleState()
+    self.xVelocity = self.airSpeed
   end
 end
 
 function Player:changeToIdleState()
+  self.canJump = true
   self.xVelocity = 0
   self:changeState("idle")
 end
 
 function Player:changeToRunState(direction)
+  self.canJump = true
   if direction == "left" then
-    self.xVelocity = -self.maxSpeed
+    self.xVelocity = -self.runSpeed
+    self.globalFlip = 1
   elseif direction == "right" then
-    self.xVelocity = self.maxSpeed
+    self.xVelocity = self.runSpeed
+    self.globalFlip = 0
   end
+  self:changeState("run")
+end
+
+function Player:changeToRollState(direction)
+  self.canJump = false
+  if direction == "left" then
+    self.xVelocity = -self.rollSpeed
+    self.globalFlip = 1
+  elseif direction == "right" then
+    self.xVelocity = self.rollSpeed
+    self.globalFlip = 0
+  end
+  self:changeState("roll")
+end
+
+function Player:changeToCurlState()
+  self.xVelocity = 0
+  self.canJump = false
+
+  self:changeState("curl")
 end
 
 function Player:changeToJumpState()
   self.yVelocity = self.jumpVelocity
   self:changeState("jump")
-end
-
-function Player:changeToRollState()
-  self.xVelocity = 0
-  self:changeState("roll")
 end
 
 function Player:applyGravity()
