@@ -18,16 +18,29 @@ function Player:init(x, y)
   self:moveTo(x, y)
   self:setZIndex(Z_INDEXES.Player)
   self:setTag(COL_TAGS.Player)
-  self:setCollideRect(22, 0, 20, 16)
+  self:doSetCollideRect()
 
   self.xVelocity = 0
   self.yVelocity = 0
   self.gravity = 1.0
   self.maxSpeed = 2.0
+  self.jumpVelocity = -3.6
+  self.drag = 0.1
+  self.minAirSpeed = 0.5
 
   self.touchingGround = false
   self.touchingWall = false
   self.touchingCeiling = false
+end
+
+function Player:doSetCollideRect(rect)
+  if rect == "roll" then
+    self:setCollideRect(24, 0, 16, 16)
+    print("Roll collide rect")
+  else
+    self:setCollideRect(22, 0, 20, 16)
+    print("Default collide rect")
+  end
 end
 
 function Player:collisionResponse()
@@ -49,6 +62,15 @@ function Player:handleState()
     self:applyGravity()
     self:handleGroundInput()
   elseif self.currentState == "jump" then
+    if self.touchingGround then
+      self:changeToIdleState()
+    end
+    self:applyGravity()
+    self:applyDrag()
+    self:handleAirInput()
+  elseif self.currentState == "roll" then
+    self:applyGravity()
+    self:handleRollInput()
   end
 end
 
@@ -56,21 +78,59 @@ function Player:handleMovementAndCollisions()
   local _, _, collisions, length = self:moveWithCollisions(self.x + self.xVelocity, self.y + self.yVelocity)
 
   self.touchingGround = false
+  self.touchingWall = false
+  self.touchingCeiling = false
 
   for i = 1, length do
     local collision = collisions[i]
     if collision.normal.y == -1 then
       self.touchingGround = true
     end
+    if collision.normal.y == 1 then
+      self.touchingCeiling = true
+    end
+    if collision.normal.x ~= 0 then
+      self.touchingWall = true
+    end
+  end
+
+  if self.xVelocity < 0 then
+    self.globalFlip = 1
+  elseif self.xVelocity > 0 then
+    self.globalFlip = 0
   end
 end
 
 function Player:handleGroundInput()
-  if pd.buttonIsPressed(pd.kButtonLeft) then
+  if pd.buttonJustPressed(pd.kButtonA) then
+    self:changeToJumpState()
+  elseif pd.buttonJustPressed(pd.kButtonB) then
+    self:doSetCollideRect("roll")
+    self:changeToRollState()
+  elseif pd.buttonIsPressed(pd.kButtonLeft) then
     self:changeToRunState("left")
   elseif pd.buttonIsPressed(pd.kButtonRight) then
     self:changeToRunState("right")
   else
+    self:changeToIdleState()
+  end
+end
+
+function Player:handleAirInput()
+  if pd.buttonIsPressed(pd.kButtonLeft) then
+    self.xVelocity = -self.maxSpeed
+  elseif pd.buttonIsPressed(pd.kButtonRight) then
+    self.xVelocity = self.maxSpeed
+  end
+end
+
+function Player:handleRollInput()
+  if pd.buttonIsPressed(pd.kButtonLeft) then
+    self.xVelocity = -self.maxSpeed
+  elseif pd.buttonIsPressed(pd.kButtonRight) then
+    self.xVelocity = self.maxSpeed
+  elseif pd.buttonJustPressed(pd.kButtonB) then
+    self:doSetCollideRect()
     self:changeToIdleState()
   end
 end
@@ -88,9 +148,31 @@ function Player:changeToRunState(direction)
   end
 end
 
+function Player:changeToJumpState()
+  self.yVelocity = self.jumpVelocity
+  self:changeState("jump")
+end
+
+function Player:changeToRollState()
+  self.xVelocity = 0
+  self:changeState("roll")
+end
+
 function Player:applyGravity()
   self.yVelocity += self.gravity
-  if self.touchingGround then
+  if self.touchingGround or self.touchingCeiling then
     self.yVelocity = 0
+  end
+end
+
+function Player:applyDrag()
+  if self.xVelocity > self.drag then
+    self.xVelocity -= self.drag
+  elseif self.xVelocity < -self.drag then
+    self.xVelocity += self.drag
+  end
+
+  if self.touchingWall then
+    self.xVelocity = 0
   end
 end

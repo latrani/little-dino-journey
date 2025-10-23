@@ -1,4 +1,4 @@
--- luacheck: globals LDtk GameScene Z_INDEXES COL_TAGS
+-- luacheck: globals LDtk GameScene Z_INDEXES COL_TAGS Player
 
 local gfx <const> = playdate.graphics
 
@@ -15,10 +15,13 @@ LDtk.load("levels/world.ldtk", false)
 
 class("GameScene").extends()
 
-function GameScene:init()
+function GameScene:init(camera)
+  self.camera = camera
+
   self:goToLevel("Level_0")
 
   self.player = Player(50, 50)
+  self.camera:setTarget(self.player)
 end
 
 function GameScene:goToLevel(level_name)
@@ -34,6 +37,8 @@ function GameScene:goToLevel(level_name)
       layerSprite:moveTo(0, 0)
       layerSprite:setZIndex(layer.zIndex)
       layerSprite:add()
+
+      self.camera:setBounds(layerSprite)
 
       local empty_tiles = LDtk.get_empty_tileIDs(level_name, "Solid", layer_name)
       if empty_tiles then
