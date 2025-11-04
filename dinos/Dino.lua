@@ -1,85 +1,117 @@
--- luacheck: globals AnimatedSprite Player Z_INDEXES COL_TAGS
+-- luacheck: globals AnimatedSprite Dino Z_INDEXES COL_TAGS
 
 local pd <const> = playdate
 local gfx <const> = pd.graphics
 
-class("Player").extends(AnimatedSprite)
+class("Dino").extends(AnimatedSprite)
 
-function Player:init(x, y)
-  local playerImageTable = gfx.imagetable.new("img/ank-table-64-16")
-  Player.super.init(self, playerImageTable)
+function Dino:init(imageTable)
+  Dino.super.init(self, imageTable)
 
-  self:addState("idle", 1, 1)
-  self:addState("run", 1, 1)
-  self:addState("jump", 1, 1)
-  self:addState("curl", 2, 2)
-  self:addState("roll", 2, 2)
-  self:playAnimation()
+  self:setZIndex(Z_INDEXES.Dino)
+  self:setTag(COL_TAGS.Dino)
+  self:setGroups(1)
 
-  self:moveTo(x, y)
-  self:setZIndex(Z_INDEXES.Player)
-  self:setTag(COL_TAGS.Player)
-  self:doSetCollideRect()
-
+  self.isActive = false
   self.xVelocity = 0
   self.yVelocity = 0
   self.gravity = 1.0
+  self.canJump = true
   self.runSpeed = 2.0
   self.airSpeed = 2.0
-  self.rollSpeed = 4.0
   self.jumpVelocity = -3.6
   self.drag = 0.1
   self.minAirSpeed = 0.5
-  self.canJump = true
 
   self.touchingGround = false
   self.touchingWall = false
   self.touchingCeiling = false
 end
 
-function Player:doSetCollideRect()
-  if self.currentState == "roll" or self.currentState == "curl" then
-    self:setCollideRect(24, 0, 16, 16)
-  else
-    self:setCollideRect(22, 0, 20, 16)
-  end
+function Dino:setActive(active)
+  self.isActive = active
 end
 
-function Player:collisionResponse()
+function Dino:doSetCollideRect()
+  self:setCollideRect(table.unpack(self.collideRects[self.currentState] or self.collideRects['idle']))
+end
+
+function Dino:collisionResponse()
   return gfx.sprite.kCollisionTypeSlide
 end
 
-function Player:update()
+function Dino:update()
   self:updateAnimation()
 
   self:handleState()
   self:handleMovementAndCollisions()
 end
 
-function Player:handleState()
+function Dino:handleState()
   if self.currentState == "idle" then
     self:applyGravity()
-    self:handleGroundInput()
   elseif self.currentState == "curl" then
     self:applyGravity()
-    self:handleGroundInput()
   elseif self.currentState == "run" then
     self:applyGravity()
-    self:handleGroundInput()
   elseif self.currentState == "roll" then
     self:applyGravity()
-    self:handleGroundInput()
   elseif self.currentState == "jump" then
     if self.touchingGround then
       self:changeToIdleState()
     end
     self:applyGravity()
     self:applyDrag()
-    self:handleAirInput()
+  end
+  self:handleInput()
+end
+
+function Dino:handleInput()
+  if self.isActive then
+    if self.currentState == "idle" then
+      self:handleGroundInput()
+    elseif self.currentState == "curl" then
+      self:handleGroundInput()
+    elseif self.currentState == "run" then
+      self:handleGroundInput()
+    elseif self.currentState == "roll" then
+      self:handleGroundInput()
+    elseif self.currentState == "jump" then
+      self:handleAirInput()
+    end
   end
 end
 
-function Player:handleMovementAndCollisions()
+function Dino:handleGroundInput()
+  local crankChange = pd.getCrankChange()
+  if pd.buttonJustPressed(pd.kButtonA) and self.canJump then
+    self:changeToJumpState()
+  elseif pd.buttonIsPressed(pd.kButtonLeft) then
+    self:changeToRunState("left")
+  elseif pd.buttonIsPressed(pd.kButtonRight) then
+    self:changeToRunState("right")
+  elseif crankChange < 0 then
+    self:changeToRollState("left")
+  elseif crankChange > 0 then
+    self:changeToRollState("right")
+  elseif self.currentState == "roll" then
+    self:changeToCurlState()
+  elseif self.currentState ~= "curl" then
+    self:changeToIdleState()
+  end
+  self:doSetCollideRect()
+end
+
+function Dino:handleAirInput()
+  if pd.buttonIsPressed(pd.kButtonLeft) then
+    self.xVelocity = -self.airSpeed
+  elseif pd.buttonIsPressed(pd.kButtonRight) then
+    self.xVelocity = self.airSpeed
+  end
+end
+
+
+function Dino:handleMovementAndCollisions()
   local _, _, collisions, length = self:moveWithCollisions(self.x + self.xVelocity, self.y + self.yVelocity)
 
   self.touchingGround = false
@@ -106,41 +138,13 @@ function Player:handleMovementAndCollisions()
   end
 end
 
-function Player:handleGroundInput()
-  local crankChange = pd.getCrankChange()
-  if pd.buttonJustPressed(pd.kButtonA) and self.canJump then
-    self:changeToJumpState()
-  elseif pd.buttonIsPressed(pd.kButtonLeft) then
-    self:changeToRunState("left")
-  elseif pd.buttonIsPressed(pd.kButtonRight) then
-    self:changeToRunState("right")
-  elseif crankChange < 0 then
-    self:changeToRollState("left")
-  elseif crankChange > 0 then
-    self:changeToRollState("right")
-  elseif self.currentState == "roll" then
-    self:changeToCurlState()
-  elseif self.currentState ~= "curl" then
-    self:changeToIdleState()
-  end
-  self:doSetCollideRect()
-end
-
-function Player:handleAirInput()
-  if pd.buttonIsPressed(pd.kButtonLeft) then
-    self.xVelocity = -self.airSpeed
-  elseif pd.buttonIsPressed(pd.kButtonRight) then
-    self.xVelocity = self.airSpeed
-  end
-end
-
-function Player:changeToIdleState()
+function Dino:changeToIdleState()
   self.canJump = true
   self.xVelocity = 0
   self:changeState("idle")
 end
 
-function Player:changeToRunState(direction)
+function Dino:changeToRunState(direction)
   self.canJump = true
   if direction == "left" then
     self.xVelocity = -self.runSpeed
@@ -152,7 +156,7 @@ function Player:changeToRunState(direction)
   self:changeState("run")
 end
 
-function Player:changeToRollState(direction)
+function Dino:changeToRollState(direction)
   self.canJump = false
   if direction == "left" then
     self.xVelocity = -self.rollSpeed
@@ -164,26 +168,26 @@ function Player:changeToRollState(direction)
   self:changeState("roll")
 end
 
-function Player:changeToCurlState()
+function Dino:changeToCurlState()
   self.xVelocity = 0
   self.canJump = false
 
   self:changeState("curl")
 end
 
-function Player:changeToJumpState()
+function Dino:changeToJumpState()
   self.yVelocity = self.jumpVelocity
   self:changeState("jump")
 end
 
-function Player:applyGravity()
+function Dino:applyGravity()
   self.yVelocity += self.gravity
   if self.touchingGround or self.touchingCeiling then
     self.yVelocity = 0
   end
 end
 
-function Player:applyDrag()
+function Dino:applyDrag()
   if self.xVelocity > self.drag then
     self.xVelocity -= self.drag
   elseif self.xVelocity < -self.drag then

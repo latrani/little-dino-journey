@@ -10,16 +10,19 @@ import "lib/LDtk"
 import "lib/FollowCamera"
 
 import "GameScene"
-import "Player"
+import "dinos/Dino"
+import "dinos/Ank"
+import "dinos/Ceph"
 
 local pd <const> = playdate
 local gfx <const> = pd.graphics
 
 local camera = FollowCamera()
-GameScene(camera)
+local scene = GameScene(camera)
 
 function pd.update()
   gfx.sprite.update()
   pd.timer.updateTimers()
   camera:update()
+  scene:update()
 end

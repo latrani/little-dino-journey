@@ -1,13 +1,14 @@
--- luacheck: globals LDtk GameScene Z_INDEXES COL_TAGS Player
+-- luacheck: globals LDtk GameScene Z_INDEXES COL_TAGS Dino
 
-local gfx <const> = playdate.graphics
+local pd <const> = playdate
+local gfx <const> = pd.graphics
 
 Z_INDEXES = {
-  Player = 100
+  Dino = 100
 }
 
 COL_TAGS = {
-  Player = 1
+  Dino = 1
 }
 
 
@@ -20,8 +21,10 @@ function GameScene:init(camera)
 
   self:goToLevel("Level_0")
 
-  self.player = Player(50, 50)
-  self.camera:setTarget(self.player)
+  self.dinos = {Ank(20, 50), Ceph(20, 50)}
+
+  self.activeDinoIndex = 1
+  self:activateDino()
 end
 
 function GameScene:goToLevel(level_name)
@@ -45,5 +48,39 @@ function GameScene:goToLevel(level_name)
         gfx.sprite.addWallSprites(tilemap, empty_tiles)
       end
     end
+  end
+end
+
+function GameScene:cycleDino(amount)
+  self:deactivateDino()
+  local newDinoIndex = (self.activeDinoIndex + amount) % #self.dinos
+  if newDinoIndex == 0 then
+    newDinoIndex = #self.dinos
+  end
+  self.activeDinoIndex = newDinoIndex
+  self:activateDino()
+end
+
+function GameScene:deactivateDino(index)
+  if not index then
+    index = self.activeDinoIndex
+  end
+  self.dinos[index]:setActive(false)
+  self.camera:clearTarget()
+end
+
+function GameScene:activateDino(index)
+  if not index then
+    index = self.activeDinoIndex
+  end
+  self.dinos[index]:setActive(true)
+  self.camera:setTarget(self.dinos[index], true)
+end
+
+function GameScene:update()
+  if pd.buttonJustPressed(pd.kButtonUp) then
+    self:cycleDino(1)
+  elseif pd.buttonJustPressed(pd.kButtonDown) then
+    self:cycleDino(-1)
   end
 end
