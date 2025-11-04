@@ -32,3 +32,46 @@ function Ceph:init(x, y)
   self:moveTo(x, y)
   self:doSetCollideRect()
 end
+
+function Ceph:handleInput()
+  if self.isActive then
+    local crankChange = pd.getCrankChange()
+    if self.currentState == "jump" then
+      if pd.buttonIsPressed(pd.kButtonLeft) then
+        self.xVelocity = -self.airSpeed
+      elseif pd.buttonIsPressed(pd.kButtonRight) then
+        self.xVelocity = self.airSpeed
+      end
+    elseif self.currentState == "bow" then
+      if ((crankChange > 0 and self.lastCranked == "left") or (crankChange < 0 and self.lastCranked == "right")) then
+        print "Charge!"
+        self:changeToIdleState()
+      end
+    else -- Ground input
+      if pd.buttonJustPressed(pd.kButtonA) and self.canJump then
+        self:changeToJumpState()
+      elseif pd.buttonIsPressed(pd.kButtonLeft) then
+        self:changeToRunState("left")
+      elseif pd.buttonIsPressed(pd.kButtonRight) then
+        self:changeToRunState("right")
+      elseif crankChange < 0 then
+        self:changeToBowState("left")
+      elseif crankChange > 0 then
+        self:changeToBowState("right")
+      else
+        self:changeToIdleState()
+      end
+    end
+    self:doSetCollideRect()
+  end
+end
+
+function Ceph:changeToBowState(direction)
+  self.lastCranked = direction
+  if direction == "left" then
+    self.globalFlip = 0
+  elseif direction == "right" then
+    self.globalFlip = 1
+  end
+  self:changeState("bow")
+end

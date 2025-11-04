@@ -1,4 +1,4 @@
--- luacheck: globals AnimatedSprite Ank Dino Z_INDEXES COL_TAGS
+-- luacheck: globals Ank Dino COL_GROUPS
 
 local pd <const> = playdate
 local gfx <const> = pd.graphics
@@ -27,4 +27,52 @@ function Ank:init(x, y)
 
   self:moveTo(x, y)
   self:doSetCollideRect()
+end
+
+function Ank:handleInput()
+  if self.isActive then
+    if self.currentState == "jump" then
+      if pd.buttonIsPressed(pd.kButtonLeft) then
+        self.xVelocity = -self.airSpeed
+      elseif pd.buttonIsPressed(pd.kButtonRight) then
+        self.xVelocity = self.airSpeed
+      end
+    else -- Ground input
+      local crankChange = pd.getCrankChange()
+      if pd.buttonJustPressed(pd.kButtonA) and self.canJump then
+        self:changeToJumpState()
+      elseif pd.buttonIsPressed(pd.kButtonLeft) then
+        self:changeToRunState("left")
+      elseif pd.buttonIsPressed(pd.kButtonRight) then
+        self:changeToRunState("right")
+      elseif crankChange < 0 then
+        self:changeToRollState("left")
+      elseif crankChange > 0 then
+        self:changeToRollState("right")
+      elseif self.currentState == "roll" then
+        self:changeToCurlState()
+      elseif self.currentState ~= "curl" then
+        self:changeToIdleState()
+      end
+    end
+    self:doSetCollideRect()
+  end
+end
+
+function Ank:changeToRollState(direction)
+  self.canJump = false
+  if direction == "left" then
+    self.xVelocity = -self.rollSpeed
+    self.globalFlip = 1
+  elseif direction == "right" then
+    self.xVelocity = self.rollSpeed
+    self.globalFlip = 0
+  end
+  self:changeState("roll")
+end
+
+function Ank:changeToCurlState()
+  self.xVelocity = 0
+  self.canJump = false
+  self:changeState("curl")
 end

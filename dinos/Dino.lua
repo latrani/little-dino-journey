@@ -1,4 +1,4 @@
--- luacheck: globals AnimatedSprite Dino Z_INDEXES COL_TAGS
+-- luacheck: globals AnimatedSprite Dino Z_INDEXES COL_TAGS COL_GROUPS
 
 local pd <const> = playdate
 local gfx <const> = pd.graphics
@@ -8,9 +8,10 @@ class("Dino").extends(AnimatedSprite)
 function Dino:init(imageTable)
   Dino.super.init(self, imageTable)
 
-  self:setZIndex(Z_INDEXES.Dino)
-  self:setTag(COL_TAGS.Dino)
-  self:setGroups(1)
+  self:setZIndex(Z_INDEXES.DINO)
+  self:setTag(COL_TAGS.DINO)
+  self:setGroups(COL_GROUPS.DINO)
+  self:setCollidesWithGroups(COL_GROUPS.WALL, COL_GROUPS.DINO_PLATFORM)
 
   self.isActive = false
   self.xVelocity = 0
@@ -48,68 +49,16 @@ function Dino:update()
 end
 
 function Dino:handleState()
-  if self.currentState == "idle" then
-    self:applyGravity()
-  elseif self.currentState == "curl" then
-    self:applyGravity()
-  elseif self.currentState == "run" then
-    self:applyGravity()
-  elseif self.currentState == "roll" then
-    self:applyGravity()
-  elseif self.currentState == "jump" then
+  if self.currentState == "jump" then
     if self.touchingGround then
       self:changeToIdleState()
     end
-    self:applyGravity()
     self:applyDrag()
   end
+
+  self:applyGravity()
   self:handleInput()
 end
-
-function Dino:handleInput()
-  if self.isActive then
-    if self.currentState == "idle" then
-      self:handleGroundInput()
-    elseif self.currentState == "curl" then
-      self:handleGroundInput()
-    elseif self.currentState == "run" then
-      self:handleGroundInput()
-    elseif self.currentState == "roll" then
-      self:handleGroundInput()
-    elseif self.currentState == "jump" then
-      self:handleAirInput()
-    end
-  end
-end
-
-function Dino:handleGroundInput()
-  local crankChange = pd.getCrankChange()
-  if pd.buttonJustPressed(pd.kButtonA) and self.canJump then
-    self:changeToJumpState()
-  elseif pd.buttonIsPressed(pd.kButtonLeft) then
-    self:changeToRunState("left")
-  elseif pd.buttonIsPressed(pd.kButtonRight) then
-    self:changeToRunState("right")
-  elseif crankChange < 0 then
-    self:changeToRollState("left")
-  elseif crankChange > 0 then
-    self:changeToRollState("right")
-  elseif self.currentState == "roll" then
-    self:changeToCurlState()
-  elseif self.currentState ~= "curl" then
-    self:changeToIdleState()
-  end
-  self:doSetCollideRect()
-end
-
-function Dino:handleAirInput()
-  if pd.buttonIsPressed(pd.kButtonLeft) then
-    self.xVelocity = -self.airSpeed
-  elseif pd.buttonIsPressed(pd.kButtonRight) then
-    self.xVelocity = self.airSpeed
-  end
-end
-
 
 function Dino:handleMovementAndCollisions()
   local _, _, collisions, length = self:moveWithCollisions(self.x + self.xVelocity, self.y + self.yVelocity)
@@ -154,25 +103,6 @@ function Dino:changeToRunState(direction)
     self.globalFlip = 0
   end
   self:changeState("run")
-end
-
-function Dino:changeToRollState(direction)
-  self.canJump = false
-  if direction == "left" then
-    self.xVelocity = -self.rollSpeed
-    self.globalFlip = 1
-  elseif direction == "right" then
-    self.xVelocity = self.rollSpeed
-    self.globalFlip = 0
-  end
-  self:changeState("roll")
-end
-
-function Dino:changeToCurlState()
-  self.xVelocity = 0
-  self.canJump = false
-
-  self:changeState("curl")
 end
 
 function Dino:changeToJumpState()
