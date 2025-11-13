@@ -21,6 +21,11 @@ function Ceph:init(x, y)
   self.airSpeed = 3.0
   self.jumpVelocity = -6
 
+  self.chargeAvailable = true
+  self.chargeSpeed = 16
+  self.chargeMinSpeed = 6
+  self.chargeDrag = 3
+
   self.collideRects = {
     idle = {24, 40, 16, 24},
     run  = {24, 40, 16, 24},
@@ -33,9 +38,27 @@ function Ceph:init(x, y)
   self:doSetCollideRect()
 end
 
+function Dino:handleState()
+  if self.currentState == "jump" then
+    if self.touchingGround then
+      self:changeToIdleState()
+    end
+    self:applyDrag(self.airDrag)
+    self:applyGravity()
+    self:handleInput()
+  elseif self.currentState == "charge" then
+    self:applyDrag(self.chargeDrag)
+    if math.abs(self.xVelocity) <= self.chargeMinSpeed then
+      self:changeToFallState()
+    end
+  else
+    self:applyGravity()
+    self:handleInput()
+  end
+end
+
 function Ceph:handleInput()
   if self.isActive then
-    local crankChange = pd.getCrankChange()
     if self.currentState == "jump" then
       if pd.buttonIsPressed(pd.kButtonLeft) then
         self.xVelocity = -self.airSpeed
@@ -43,21 +66,21 @@ function Ceph:handleInput()
         self.xVelocity = self.airSpeed
       end
     elseif self.currentState == "bow" then
-      if ((crankChange > 0 and self.lastCranked == "left") or (crankChange < 0 and self.lastCranked == "right")) then
-        print "Charge!"
-        self:changeToIdleState()
+      -- Using ticks here to basically buffer the crank input
+      self.crankChange = pd.getCrankTicks(10)
+      if self.crankChange > 0 then
+        self:changeToChargeState()
       end
     else -- Ground input
+      self.crankChange = pd.getCrankTicks(10)
       if pd.buttonJustPressed(pd.kButtonA) and self.canJump then
         self:changeToJumpState()
+      elseif self.crankChange < 0 and self.chargeAvailable then
+        self:changeToBowState()
       elseif pd.buttonIsPressed(pd.kButtonLeft) then
         self:changeToRunState("left")
       elseif pd.buttonIsPressed(pd.kButtonRight) then
         self:changeToRunState("right")
-      elseif crankChange < 0 then
-        self:changeToBowState("left")
-      elseif crankChange > 0 then
-        self:changeToBowState("right")
       else
         self:changeToIdleState()
       end
@@ -66,12 +89,25 @@ function Ceph:handleInput()
   end
 end
 
-function Ceph:changeToBowState(direction)
-  self.lastCranked = direction
-  if direction == "left" then
-    self.globalFlip = 0
-  elseif direction == "right" then
-    self.globalFlip = 1
-  end
+function Ceph:changeToBowState()
   self:changeState("bow")
 end
+
+
+function Ceph:changeToFallState()
+  self:changeState("jump")
+end
+
+function Ceph:changeToChargeState()
+  self.chargeAvailable = false
+  self.yVelocity = 0
+
+  if self.globalFlip == 1 then
+    self.xVelocity = -self.chargeSpeed
+  else --
+    self.xVelocity = self.chargeSpeed
+  end
+
+  self:changeState("charge")
+end
+

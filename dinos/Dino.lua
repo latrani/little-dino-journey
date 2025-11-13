@@ -21,7 +21,7 @@ function Dino:init(imageTable)
   self.runSpeed = 2.0
   self.airSpeed = 2.0
   self.jumpVelocity = -3.6
-  self.drag = 0.1
+  self.airDrag = 0.1
   self.minAirSpeed = 0.5
 
   self.touchingGround = false
@@ -53,7 +53,7 @@ function Dino:handleState()
     if self.touchingGround then
       self:changeToIdleState()
     end
-    self:applyDrag()
+    self:applyDrag(self.airDrag)
   end
 
   self:applyGravity()
@@ -71,6 +71,7 @@ function Dino:handleMovementAndCollisions()
     local collision = collisions[i]
     if collision.normal.y == -1 then
       self.touchingGround = true
+      self.chargeAvailable = true
     end
     if collision.normal.y == 1 then
       self.touchingCeiling = true
@@ -117,11 +118,11 @@ function Dino:applyGravity()
   end
 end
 
-function Dino:applyDrag()
-  if self.xVelocity > self.drag then
-    self.xVelocity -= self.drag
-  elseif self.xVelocity < -self.drag then
-    self.xVelocity += self.drag
+function Dino:applyDrag(drag)
+  if self.xVelocity > drag then
+    self.xVelocity -= drag
+  elseif self.xVelocity < -drag then
+    self.xVelocity += drag
   end
 
   if self.touchingWall then
