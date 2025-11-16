@@ -4,18 +4,23 @@ local pd <const> = playdate
 local gfx <const> = pd.graphics
 
 Z_INDEXES = {
-  DINO = 100
+  DINO = 100,
+  HAZARD = 2
 }
 
 COL_TAGS = {
-  DINO = 1
+  DINO = 1,
+  HAZARD = 2
 }
 
 COL_GROUPS = {
-  WALL = 1,
+  WORLD = 1,
   DINO = 2,
   DINO_PLATFORM = 3
 }
+
+local spawnX = 20
+local spawnY = 50
 
 LDtk.load("levels/world.ldtk", false)
 
@@ -26,10 +31,16 @@ function GameScene:init(camera)
 
   self:goToLevel("Level_0")
 
-  self.dinos = {Ank(20, 50), Ceph(20, 50)}
+  self.dinos = {Ank(spawnX, spawnY, self), Ceph(spawnX, spawnY, self)}
 
   self.activeDinoIndex = 2
   self:activateDino()
+end
+
+function GameScene:resetDinos()
+  for _, dino in ipairs(self.dinos) do
+    dino:moveTo(spawnX, spawnY)
+  end
 end
 
 function GameScene:goToLevel(level_name)
@@ -52,10 +63,16 @@ function GameScene:goToLevel(level_name)
       if empty_tiles then
         local wallSprites = gfx.sprite.addWallSprites(tilemap, empty_tiles)
         for _, wallSprite in ipairs(wallSprites) do
-          wallSprite:setGroups(COL_GROUPS.WALL)
+          wallSprite:setGroups(COL_GROUPS.WORLD)
           wallSprite:setCollidesWithGroups(COL_GROUPS.DINO, COL_GROUPS.DINO_PLATFORM)
         end
       end
+    end
+  end
+
+  for _, entity in ipairs(LDtk.get_entities(level_name)) do
+    if entity.name == "Spikes" then
+      Spikes(entity.position.x, entity.position.y)
     end
   end
 end

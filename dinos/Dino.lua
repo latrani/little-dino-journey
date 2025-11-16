@@ -5,13 +5,14 @@ local gfx <const> = pd.graphics
 
 class("Dino").extends(AnimatedSprite)
 
-function Dino:init(imageTable)
+function Dino:init(imageTable, theGameScene)
+  self.gameScene = theGameScene
   Dino.super.init(self, imageTable)
 
   self:setZIndex(Z_INDEXES.DINO)
   self:setTag(COL_TAGS.DINO)
   self:setGroups(COL_GROUPS.DINO)
-  self:setCollidesWithGroups(COL_GROUPS.WALL, COL_GROUPS.DINO_PLATFORM)
+  self:setCollidesWithGroups(COL_GROUPS.WORLD, COL_GROUPS.DINO_PLATFORM)
 
   self.isActive = false
   self.xVelocity = 0
@@ -27,6 +28,8 @@ function Dino:init(imageTable)
   self.touchingGround = false
   self.touchingWall = false
   self.touchingCeiling = false
+
+  self.isDead = false
 end
 
 function Dino:setActive(active)
@@ -37,11 +40,19 @@ function Dino:doSetCollideRect()
   self:setCollideRect(table.unpack(self.collideRects[self.currentState] or self.collideRects['idle']))
 end
 
-function Dino:collisionResponse()
-  return gfx.sprite.kCollisionTypeSlide
+function Dino:collisionResponse(other)
+    local tag = other:getTag()
+    if tag == COL_TAGS.HAZARD then
+        return gfx.sprite.kCollisionTypeOverlap
+    end
+    return gfx.sprite.kCollisionTypeSlide
 end
 
 function Dino:update()
+  if self.isDead then
+    return
+  end
+
   self:updateAnimation()
 
   self:handleState()
@@ -67,17 +78,27 @@ function Dino:handleMovementAndCollisions()
   self.touchingWall = false
   self.touchingCeiling = false
 
+  local died = false
+
   for i = 1, length do
     local collision = collisions[i]
-    if collision.normal.y == -1 then
-      self.touchingGround = true
-      self.chargeAvailable = true
+    local collisionTag = collision.other:getTag()
+
+    if collision.type == gfx.sprite.kCollisionTypeSlide then
+      if collision.normal.y == -1 then
+        self.touchingGround = true
+        self.chargeAvailable = true
+      end
+      if collision.normal.y == 1 then
+        self.touchingCeiling = true
+      end
+      if collision.normal.x ~= 0 then
+        self.touchingWall = true
+      end
     end
-    if collision.normal.y == 1 then
-      self.touchingCeiling = true
-    end
-    if collision.normal.x ~= 0 then
-      self.touchingWall = true
+
+    if collisionTag == COL_TAGS.HAZARD then
+      died = true
     end
   end
 
@@ -86,6 +107,22 @@ function Dino:handleMovementAndCollisions()
   elseif self.xVelocity > 0 then
     self.globalFlip = 0
   end
+
+  if died then
+    self:die()
+  end
+end
+
+function Dino:die()
+  self.xVelocity = 0
+  self.yVelocity = 0
+  self.isDead = true
+  self:setCollisionsEnabled(false)
+  pd.timer.performAfterDelay(200, function()
+    self:setCollisionsEnabled(true)
+    self.isDead = false
+    self.gameScene:resetDinos()
+  end)
 end
 
 function Dino:changeToIdleState()

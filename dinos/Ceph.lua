@@ -5,8 +5,8 @@ local gfx <const> = pd.graphics
 
 class("Ceph").extends(Dino)
 
-function Ceph:init(x, y)
-  Ceph.super.init(self, gfx.imagetable.new("img/ceph-table-64-64"))
+function Ceph:init(x, y, theGameScene)
+  Ceph.super.init(self, gfx.imagetable.new("img/ceph-table-64-64"), theGameScene)
 
   self.rollSpeed = 4.0
 

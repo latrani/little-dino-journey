@@ -5,8 +5,8 @@ local gfx <const> = pd.graphics
 
 class("Ank").extends(Dino)
 
-function Ank:init(x, y)
-  Ank.super.init(self, gfx.imagetable.new("img/ank-table-64-64"))
+function Ank:init(x, y, theGameScene)
+  Ank.super.init(self, gfx.imagetable.new("img/ank-table-64-64"), theGameScene)
 
   self.rollSpeed = 4.0
 
