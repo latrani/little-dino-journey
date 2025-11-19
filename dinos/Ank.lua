@@ -1,4 +1,4 @@
--- luacheck: globals Ank Dino COL_GROUPS
+-- luacheck: globals Ank Dino
 
 local pd <const> = playdate
 local gfx <const> = pd.graphics
@@ -59,6 +59,17 @@ function Ank:handleInput()
   end
 end
 
+function Ank:collisionResponse(other)
+  return Ank.super.collisionResponse(self, other)
+end
+
+
+function Ank:handleHazardCollision()
+  if self.currentState ~= "roll" and self.currentState ~= "curl" then
+    self.shouldDie = true
+  end
+end
+
 function Ank:changeToRollState(direction)
   self.canJump = false
   if direction == "left" then
@@ -71,8 +82,16 @@ function Ank:changeToRollState(direction)
   self:changeState("roll")
 end
 
+function Ank:changeToIdleState()
+  -- self:setTag(COL_TAGS.DINO)
+  Ank.super.changeToIdleState(self)
+end
+
 function Ank:changeToCurlState()
   self.xVelocity = 0
   self.canJump = false
+  -- self:setTag(COL_TAGS.DINO_PLATFORM)
   self:changeState("curl")
 end
+
+

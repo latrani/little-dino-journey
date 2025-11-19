@@ -1,4 +1,4 @@
--- luacheck: globals AnimatedSprite Dino Z_INDEXES COL_TAGS COL_GROUPS
+-- luacheck: globals AnimatedSprite Dino Z_INDEXES COL_TAGS
 
 local pd <const> = playdate
 local gfx <const> = pd.graphics
@@ -11,8 +11,6 @@ function Dino:init(imageTable, theGameScene)
 
   self:setZIndex(Z_INDEXES.DINO)
   self:setTag(COL_TAGS.DINO)
-  self:setGroups(COL_GROUPS.DINO)
-  self:setCollidesWithGroups(COL_GROUPS.WORLD, COL_GROUPS.DINO_PLATFORM)
 
   self.isActive = false
   self.xVelocity = 0
@@ -29,23 +27,46 @@ function Dino:init(imageTable, theGameScene)
   self.touchingWall = false
   self.touchingCeiling = false
 
+  self.shouldDie = false
   self.isDead = false
 end
 
-function Dino:setActive(active)
-  self.isActive = active
+function Dino:activate()
+  self.isActive = true
+  self:setZIndex(Z_INDEXES.ACTIVE_DINO)
 end
+
+function Dino:deactivate()
+  self.isActive = false
+  self:setZIndex(Z_INDEXES.DINO)
+end
+
 
 function Dino:doSetCollideRect()
   self:setCollideRect(table.unpack(self.collideRects[self.currentState] or self.collideRects['idle']))
 end
 
+-- The comical one
+-- function Dino:collisionResponse(other)
+  -- local tag = other:getTag()
+  -- if tag == COL_TAGS.HAZARD then
+  --   return "overlap"
+  -- elseif tag == COL_TAGS.DINO then
+  --   if self.yVelocity > 0 then
+  --     return "slide"
+  --   else
+  --     return "overlap"
+  --   end
+  -- end
+  -- return "slide"
+-- end
+
 function Dino:collisionResponse(other)
-    local tag = other:getTag()
-    if tag == COL_TAGS.HAZARD then
-        return gfx.sprite.kCollisionTypeOverlap
-    end
-    return gfx.sprite.kCollisionTypeSlide
+  local tag = other:getTag()
+  if tag == COL_TAGS.HAZARD or tag == COL_TAGS.DINO then
+    return "overlap"
+  end
+  return "slide"
 end
 
 function Dino:update()
@@ -78,8 +99,6 @@ function Dino:handleMovementAndCollisions()
   self.touchingWall = false
   self.touchingCeiling = false
 
-  local died = false
-
   for i = 1, length do
     local collision = collisions[i]
     local collisionTag = collision.other:getTag()
@@ -98,7 +117,7 @@ function Dino:handleMovementAndCollisions()
     end
 
     if collisionTag == COL_TAGS.HAZARD then
-      died = true
+      self:handleHazardCollision()
     end
   end
 
@@ -108,9 +127,14 @@ function Dino:handleMovementAndCollisions()
     self.globalFlip = 0
   end
 
-  if died then
+  if self.shouldDie then
+    self.shouldDie = false
     self:die()
   end
+end
+
+function Dino:handleHazardCollision()
+  self.shouldDie = true
 end
 
 function Dino:die()

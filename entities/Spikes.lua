@@ -1,4 +1,4 @@
--- luacheck: globals Spikes Z_INDEXES COL_TAGS COL_GROUPS
+-- luacheck: globals Spikes Z_INDEXES COL_TAGS
 
 local pd <const> = playdate
 local gfx <const> = pd.graphics
@@ -15,6 +15,5 @@ function Spikes:init(x, y)
   self:add()
 
   self:setTag(COL_TAGS.HAZARD)
-  self:setGroups(COL_GROUPS.WORLD)
-  self:setCollideRect(1, 2, 6, 6)
+  self:setCollideRect(1, 3, 6, 5)
 end

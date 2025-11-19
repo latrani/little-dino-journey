@@ -1,26 +1,23 @@
--- luacheck: globals LDtk GameScene Z_INDEXES COL_TAGS COL_GROUPS Dino
+-- luacheck: globals LDtk GameScene Z_INDEXES COL_TAGS Dino
 
 local pd <const> = playdate
 local gfx <const> = pd.graphics
 
 Z_INDEXES = {
+
+  ACTIVE_DINO = 101,
   DINO = 100,
   HAZARD = 2
 }
 
 COL_TAGS = {
   DINO = 1,
-  HAZARD = 2
-}
-
-COL_GROUPS = {
-  WORLD = 1,
-  DINO = 2,
+  HAZARD = 2,
   DINO_PLATFORM = 3
 }
 
 local spawnX = 20
-local spawnY = 50
+local spawnY = 200
 
 LDtk.load("levels/world.ldtk", false)
 
@@ -62,10 +59,6 @@ function GameScene:goToLevel(level_name)
       local empty_tiles = LDtk.get_empty_tileIDs(level_name, "Solid", layer_name)
       if empty_tiles then
         local wallSprites = gfx.sprite.addWallSprites(tilemap, empty_tiles)
-        for _, wallSprite in ipairs(wallSprites) do
-          wallSprite:setGroups(COL_GROUPS.WORLD)
-          wallSprite:setCollidesWithGroups(COL_GROUPS.DINO, COL_GROUPS.DINO_PLATFORM)
-        end
       end
     end
   end
@@ -91,7 +84,7 @@ function GameScene:deactivateDino(index)
   if not index then
     index = self.activeDinoIndex
   end
-  self.dinos[index]:setActive(false)
+  self.dinos[index]:deactivate()
   self.camera:clearTarget()
 end
 
@@ -99,7 +92,7 @@ function GameScene:activateDino(index)
   if not index then
     index = self.activeDinoIndex
   end
-  self.dinos[index]:setActive(true)
+  self.dinos[index]:activate()
   self.camera:setTarget(self.dinos[index], true)
 end
 
