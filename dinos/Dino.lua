@@ -5,12 +5,13 @@ local gfx <const> = pd.graphics
 
 class("Dino").extends(AnimatedSprite)
 
-function Dino:init(imageTable, theGameScene)
+function Dino:init(imageTable, x, y, theGameScene)
   self.gameScene = theGameScene
   Dino.super.init(self, imageTable)
 
   self:setZIndex(Z_INDEXES.DINO)
   self:setTag(COL_TAGS.DINO)
+  self:setSpawn(x, y)
 
   self.isActive = false
   self.xVelocity = 0
@@ -23,12 +24,25 @@ function Dino:init(imageTable, theGameScene)
   self.airDrag = 0.1
   self.minAirSpeed = 0.5
 
+  self.isRiding = nil
+  self.isRiddenBy = nil
+
   self.touchingGround = false
   self.touchingWall = false
   self.touchingCeiling = false
 
   self.shouldDie = false
   self.isDead = false
+  self.atGoal = false
+end
+
+function Dino:setSpawn(x, y)
+  self.spawnX = x
+  self.spawnY = y
+end
+
+function Dino:respawn()
+  self:moveTo(self.spawnX, self.spawnY)
 end
 
 function Dino:activate()
@@ -63,7 +77,14 @@ end
 
 function Dino:collisionResponse(other)
   local tag = other:getTag()
-  if tag == COL_TAGS.HAZARD or tag == COL_TAGS.DINO then
+  if tag == COL_TAGS.HAZARD then
+    return "overlap"
+  end
+  if tag == COL_TAGS.DINO then
+    return "slide"
+  end
+  if tag == COL_TAGS.EXIT then
+    other:checkSuccess()
     return "overlap"
   end
   return "slide"
@@ -107,6 +128,13 @@ function Dino:handleMovementAndCollisions()
       if collision.normal.y == -1 then
         self.touchingGround = true
         self.chargeAvailable = true
+        if collision.other:getTag() == COL_TAGS.DINO then
+          self.isRiding = collision.other
+          collision.other.isRiddenBy = self
+        elseif self.isRiding then
+          self.isRiding.isRiddenBy = nil
+          self.isRiding = nil
+        end
       end
       if collision.normal.y == 1 then
         self.touchingCeiling = true
@@ -118,6 +146,10 @@ function Dino:handleMovementAndCollisions()
 
     if collisionTag == COL_TAGS.HAZARD then
       self:handleHazardCollision()
+    end
+
+    if collisionTag == COL_TAGS.CRACKED then
+      self:handleCrackedCollision(collision.other)
     end
   end
 
@@ -131,10 +163,20 @@ function Dino:handleMovementAndCollisions()
     self.shouldDie = false
     self:die()
   end
+
+  if self.isRiddenBy then
+    self.isRiddenBy.xVelocity = self.xVelocity
+    self.isRiddenBy.yVelocity = self.yVelocity
+  end
 end
 
 function Dino:handleHazardCollision()
   self.shouldDie = true
+end
+
+function Dino:handleCrackedCollision(other)
+  print("Generic cracked collision")
+  return
 end
 
 function Dino:die()
@@ -173,9 +215,10 @@ function Dino:changeToJumpState()
 end
 
 function Dino:applyGravity()
-  self.yVelocity += self.gravity
   if self.touchingGround or self.touchingCeiling then
     self.yVelocity = 0
+  else
+    self.yVelocity += self.gravity
   end
 end
 

@@ -3,7 +3,7 @@
 local pd <const> = playdate
 local gfx <const> = pd.graphics
 
-local spikeImage <const> = gfx.image.new("img/spikes.png")
+local spikeImage <const> = gfx.image.new("img/Spikes.png")
 
 class("Spikes").extends(gfx.sprite)
 
@@ -15,5 +15,5 @@ function Spikes:init(x, y)
   self:add()
 
   self:setTag(COL_TAGS.HAZARD)
-  self:setCollideRect(1, 3, 6, 5)
+  self:setCollideRect(0, 0, 8, 8)
 end

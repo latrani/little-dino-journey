@@ -6,7 +6,7 @@ local gfx <const> = pd.graphics
 class("Ceph").extends(Dino)
 
 function Ceph:init(x, y, theGameScene)
-  Ceph.super.init(self, gfx.imagetable.new("img/ceph-table-64-64"), theGameScene)
+  Ceph.super.init(self, gfx.imagetable.new("img/ceph-table-64-64"), x, y, theGameScene)
 
   self.rollSpeed = 4.0
 
@@ -34,7 +34,7 @@ function Ceph:init(x, y, theGameScene)
     roll = {24, 40, 16, 24}
   }
 
-  self:moveTo(x, y)
+  self:respawn()
   self:doSetCollideRect()
 end
 
@@ -86,6 +86,13 @@ function Ceph:handleInput()
       end
     end
     self:doSetCollideRect()
+  end
+end
+
+
+function Dino:handleCrackedCollision(other)
+  if self.currentState == "charge" then
+    other:doBreak()
   end
 end
 

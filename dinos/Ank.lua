@@ -1,4 +1,4 @@
--- luacheck: globals Ank Dino
+-- luacheck: globals Ank Dino COL_TAGS
 
 local pd <const> = playdate
 local gfx <const> = pd.graphics
@@ -6,7 +6,7 @@ local gfx <const> = pd.graphics
 class("Ank").extends(Dino)
 
 function Ank:init(x, y, theGameScene)
-  Ank.super.init(self, gfx.imagetable.new("img/ank-table-64-64"), theGameScene)
+  Ank.super.init(self, gfx.imagetable.new("img/ank-table-64-64"), x, y, theGameScene)
 
   self.rollSpeed = 4.0
 
@@ -25,7 +25,7 @@ function Ank:init(x, y, theGameScene)
     roll = {24, 44, 16, 20}
   }
 
-  self:moveTo(x, y)
+  self:respawn()
   self:doSetCollideRect()
 end
 
@@ -60,6 +60,12 @@ function Ank:handleInput()
 end
 
 function Ank:collisionResponse(other)
+  if (self.currentState == "roll" or self.currentState == "curl") then
+    local tag = other:getTag()
+    if tag == COL_TAGS.HAZARD or tag == COL_TAGS.DINO then
+      return "slide"
+    end
+  end
   return Ank.super.collisionResponse(self, other)
 end
 

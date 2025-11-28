@@ -16,6 +16,8 @@ import "dinos/Ank"
 import "dinos/Ceph"
 
 import "entities/Spikes"
+import "entities/CrackedStone"
+import "entities/Gate"
 
 local pd <const> = playdate
 local gfx <const> = pd.graphics

@@ -1,4 +1,4 @@
--- luacheck: globals LDtk GameScene Z_INDEXES COL_TAGS Dino
+-- luacheck: globals LDtk GameScene Z_INDEXES COL_TAGS Dino Ank Ceph Spikes CrackedStone Gate
 
 local pd <const> = playdate
 local gfx <const> = pd.graphics
@@ -7,16 +7,18 @@ Z_INDEXES = {
 
   ACTIVE_DINO = 101,
   DINO = 100,
+  WORLD = 1,
   HAZARD = 2
 }
 
 COL_TAGS = {
   DINO = 1,
   HAZARD = 2,
-  DINO_PLATFORM = 3
+  CRACKED = 3,
+  EXIT = 4
 }
 
-local spawnX = 20
+local spawnX = 30
 local spawnY = 200
 
 LDtk.load("levels/world.ldtk", false)
@@ -28,7 +30,7 @@ function GameScene:init(camera)
 
   self:goToLevel("Level_0")
 
-  self.dinos = {Ank(spawnX, spawnY, self), Ceph(spawnX, spawnY, self)}
+  self.dinos = {Ank(spawnX + 30, spawnY, self), Ceph(spawnX, spawnY, self)}
 
   self.activeDinoIndex = 2
   self:activateDino()
@@ -36,7 +38,7 @@ end
 
 function GameScene:resetDinos()
   for _, dino in ipairs(self.dinos) do
-    dino:moveTo(spawnX, spawnY)
+    dino:respawn()
   end
 end
 
@@ -66,6 +68,12 @@ function GameScene:goToLevel(level_name)
   for _, entity in ipairs(LDtk.get_entities(level_name)) do
     if entity.name == "Spikes" then
       Spikes(entity.position.x, entity.position.y)
+    end
+    if entity.name == "CrackedStone" then
+      CrackedStone(entity.position.x, entity.position.y)
+    end
+    if entity.name == "Gate" then
+      Gate(entity.position.x, entity.position.y)
     end
   end
 end
