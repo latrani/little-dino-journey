@@ -15,5 +15,5 @@ function Spikes:init(x, y)
   self:add()
 
   self:setTag(COL_TAGS.HAZARD)
-  self:setCollideRect(0, 0, 8, 8)
+  self:setCollideRect(3, 7, 2, 1)
 end

@@ -1,4 +1,4 @@
--- luacheck: globals AnimatedSprite Dino Z_INDEXES COL_TAGS
+-- luacheck: globals AnimatedSprite Dino Z_INDEXES COL_TAGS SCENE_MANAGER GameOverScene
 
 local pd <const> = playdate
 local gfx <const> = pd.graphics
@@ -185,9 +185,9 @@ function Dino:die()
   self.isDead = true
   self:setCollisionsEnabled(false)
   pd.timer.performAfterDelay(200, function()
-    self:setCollisionsEnabled(true)
-    self.isDead = false
-    self.gameScene:resetDinos()
+    -- self:setCollisionsEnabled(true)
+    -- self.isDead = false
+    SCENE_MANAGER:switchScene(GameOverScene, "Try again!")
   end)
 end
 

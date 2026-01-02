@@ -11,10 +11,10 @@ function Ank:init(x, y, theGameScene)
   self.rollSpeed = 4.0
 
   self:addState("idle", 1, 1)
-  self:addState("run", 1, 1)
+  self:addState("run", 1, 8, {tickStep = 3})
   self:addState("jump", 1, 1)
-  self:addState("curl", 2, 2)
-  self:addState("roll", 2, 2)
+  self:addState("curl", 9, 9)
+  self:addState("roll", 9, 12, {tickStep = 3})
   self:playAnimation()
 
   self.collideRects = {
@@ -62,7 +62,7 @@ end
 function Ank:collisionResponse(other)
   if (self.currentState == "roll" or self.currentState == "curl") then
     local tag = other:getTag()
-    if tag == COL_TAGS.HAZARD or tag == COL_TAGS.DINO then
+    if tag == COL_TAGS.DINO then
       return "slide"
     end
   end

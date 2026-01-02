@@ -1,39 +1,25 @@
--- luacheck: globals LDtk GameScene Z_INDEXES COL_TAGS Dino Ank Ceph Spikes CrackedStone Gate
+-- luacheck: globals LDtk GameScene Dino Ank Ceph Spikes CrackedStone
+-- luacheck: globals Gate FollowCamera SCENE_MANAGER GameOverScene CAMERA
 
 local pd <const> = playdate
 local gfx <const> = pd.graphics
-
-Z_INDEXES = {
-
-  ACTIVE_DINO = 101,
-  DINO = 100,
-  WORLD = 1,
-  HAZARD = 2
-}
-
-COL_TAGS = {
-  DINO = 1,
-  HAZARD = 2,
-  CRACKED = 3,
-  EXIT = 4
-}
 
 local spawnX = 30
 local spawnY = 200
 
 LDtk.load("levels/world.ldtk", false)
 
-class("GameScene").extends()
+class("GameScene").extends(gfx.sprite)
 
-function GameScene:init(camera)
-  self.camera = camera
-
+function GameScene:init()
   self:goToLevel("Level_0")
 
-  self.dinos = {Ank(spawnX + 30, spawnY, self), Ceph(spawnX, spawnY, self)}
+  self.dinos = {Ank(spawnX, spawnY, self), Ceph(spawnX + 30, spawnY, self)}
 
-  self.activeDinoIndex = 2
+  self.activeDinoIndex = #self.dinos
   self:activateDino()
+
+  self:add()
 end
 
 function GameScene:resetDinos()
@@ -56,11 +42,11 @@ function GameScene:goToLevel(level_name)
       layerSprite:setZIndex(layer.zIndex)
       layerSprite:add()
 
-      self.camera:setBounds(layerSprite)
+      CAMERA:setBounds(layerSprite)
 
       local empty_tiles = LDtk.get_empty_tileIDs(level_name, "Solid", layer_name)
       if empty_tiles then
-        local wallSprites = gfx.sprite.addWallSprites(tilemap, empty_tiles)
+        gfx.sprite.addWallSprites(tilemap, empty_tiles)
       end
     end
   end
@@ -73,7 +59,7 @@ function GameScene:goToLevel(level_name)
       CrackedStone(entity.position.x, entity.position.y)
     end
     if entity.name == "Gate" then
-      Gate(entity.position.x, entity.position.y)
+      Gate(entity.position.x, entity.position.y, self)
     end
   end
 end
@@ -93,7 +79,7 @@ function GameScene:deactivateDino(index)
     index = self.activeDinoIndex
   end
   self.dinos[index]:deactivate()
-  self.camera:clearTarget()
+  CAMERA:clearTarget()
 end
 
 function GameScene:activateDino(index)
@@ -101,13 +87,15 @@ function GameScene:activateDino(index)
     index = self.activeDinoIndex
   end
   self.dinos[index]:activate()
-  self.camera:setTarget(self.dinos[index], true)
+  CAMERA:setTarget(self.dinos[index], true)
 end
 
 function GameScene:update()
   if pd.buttonJustPressed(pd.kButtonUp) then
+    print("Up")
     self:cycleDino(1)
   elseif pd.buttonJustPressed(pd.kButtonDown) then
+    print("Doen")
     self:cycleDino(-1)
   end
 end

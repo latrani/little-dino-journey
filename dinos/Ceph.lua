@@ -11,15 +11,15 @@ function Ceph:init(x, y, theGameScene)
   self.rollSpeed = 4.0
 
   self:addState("idle", 1, 1)
-  self:addState("run", 1, 1)
+  self:addState("run", 1, 8, {tickStep = 3})
   self:addState("jump", 1, 1)
-  self:addState("bow", 2, 2)
-  self:addState("charge", 2, 2)
+  self:addState("bow", 9, 9)
+  self:addState("charge", 9, 9)
   self:playAnimation()
 
   self.runSpeed = 3.0
   self.airSpeed = 3.0
-  self.jumpVelocity = -6
+  self.jumpVelocity = -7
 
   self.chargeAvailable = true
   self.chargeSpeed = 16
@@ -70,6 +70,12 @@ function Ceph:handleInput()
       self.crankChange = pd.getCrankTicks(10)
       if self.crankChange > 0 then
         self:changeToChargeState()
+      elseif pd.buttonJustPressed(pd.kButtonA) and self.canJump then
+        self:changeToJumpState()
+      elseif pd.buttonJustPressed(pd.kButtonLeft) then
+        self:changeToRunState("left")
+      elseif pd.buttonJustPressed(pd.kButtonRight) then
+        self:changeToRunState("right")
       end
     else -- Ground input
       self.crankChange = pd.getCrankTicks(10)
