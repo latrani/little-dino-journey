@@ -9,6 +9,7 @@ function Dino:init(imageTable, x, y, theGameScene)
   self.gameScene = theGameScene
   Dino.super.init(self, imageTable)
 
+  self:setCenter(0, 0)
   self:setZIndex(Z_INDEXES.DINO)
   self:setTag(COL_TAGS.DINO)
   self:setSpawn(x, y)
@@ -81,13 +82,27 @@ function Dino:collisionResponse(other)
     return "overlap"
   end
   if tag == COL_TAGS.DINO then
-    return "slide"
+    print("DINO", self.y + self:getCollideRect().height, other:getCollideRect().y)
+    if (self.y + self:getCollideRect().height < other:getCollideRect().y) and self.yVelocity > 0 then
+      return "slide"
+    else
+      return "overlap"
+    end
   end
   if tag == COL_TAGS.EXIT then
     other:checkSuccess()
     return "overlap"
   end
-  return "slide"
+  if tag == COL_TAGS.PLATFORM then
+    print ("PLATFORM", self.y + self:getCollideRect().height, other.y)
+    if (self.y + self:getCollideRect().height < other.y) and self.yVelocity >= 0 then
+      return "slide"
+    else
+      return "overlap"
+    end
+  else
+    return "slide"
+  end
 end
 
 function Dino:update()

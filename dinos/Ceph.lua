@@ -30,8 +30,8 @@ function Ceph:init(x, y, theGameScene)
     idle = {24, 40, 16, 24},
     run  = {24, 40, 16, 24},
     jump = {24, 40, 16, 24},
-    curl = {24, 40, 16, 24},
-    roll = {24, 40, 16, 24}
+    bow = {24, 40, 16, 24},
+    charge = {24, 40, 16, 24}
   }
 
   self:respawn()

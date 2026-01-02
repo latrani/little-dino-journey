@@ -61,6 +61,9 @@ function GameScene:goToLevel(level_name)
     if entity.name == "Gate" then
       Gate(entity.position.x, entity.position.y, self)
     end
+    if entity.name == "Log" then
+      Log(entity.position.x, entity.position.y, self)
+    end
   end
 end
 

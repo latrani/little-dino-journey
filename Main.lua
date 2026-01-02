@@ -22,6 +22,7 @@ import "dinos/Ceph"
 import "entities/Spikes"
 import "entities/CrackedStone"
 import "entities/Gate"
+import "entities/Log"
 
 local pd <const> = playdate
 local gfx <const> = pd.graphics
@@ -34,10 +35,12 @@ Z_INDEXES = {
 }
 
 COL_TAGS = {
+  ACTIVE_DINO = 0,
   DINO = 1,
   HAZARD = 2,
   CRACKED = 3,
-  EXIT = 4
+  EXIT = 4,
+  PLATFORM = 5
 }
 
 SCENE_MANAGER = SceneManager()
