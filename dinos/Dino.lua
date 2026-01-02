@@ -49,11 +49,13 @@ end
 function Dino:activate()
   self.isActive = true
   self:setZIndex(Z_INDEXES.ACTIVE_DINO)
+  -- self:setTag(Z_INDEXES.ACTIVE_DINO)
 end
 
 function Dino:deactivate()
   self.isActive = false
   self:setZIndex(Z_INDEXES.DINO)
+  -- self:setTag(COL_TAGS.DINO)
 end
 
 
@@ -81,28 +83,18 @@ function Dino:collisionResponse(other)
   if tag == COL_TAGS.HAZARD then
     return "overlap"
   end
-  if tag == COL_TAGS.DINO then
-    print("DINO", self.y + self:getCollideRect().height, other:getCollideRect().y)
-    if (self.y + self:getCollideRect().height < other:getCollideRect().y) and self.yVelocity > 0 then
-      return "slide"
-    else
-      return "overlap"
-    end
-  end
   if tag == COL_TAGS.EXIT then
     other:checkSuccess()
     return "overlap"
   end
-  if tag == COL_TAGS.PLATFORM then
-    print ("PLATFORM", self.y + self:getCollideRect().height, other.y)
-    if (self.y + self:getCollideRect().height < other.y) and self.yVelocity >= 0 then
+  if tag == COL_TAGS.PLATFORM or tag == COL_TAGS.DINO then
+    if (self.y + self.height <= other.y + other:getCollideRect().y) then
       return "slide"
     else
       return "overlap"
     end
-  else
-    return "slide"
   end
+  return "slide"
 end
 
 function Dino:update()

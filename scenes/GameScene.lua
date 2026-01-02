@@ -4,8 +4,8 @@
 local pd <const> = playdate
 local gfx <const> = pd.graphics
 
-local spawnX = 30
-local spawnY = 200
+local spawnX = 10
+local spawnY = 150
 
 LDtk.load("levels/world.ldtk", false)
 

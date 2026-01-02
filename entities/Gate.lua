@@ -13,6 +13,7 @@ function Gate:init(x, y, theGameScene)
   self.gameScene = theGameScene
   self:setZIndex(Z_INDEXES.WORLD)
   self:setImage(gateImage)
+  self:setCenter(0, 0)
   self:moveTo(x, y)
   self:add()
 
