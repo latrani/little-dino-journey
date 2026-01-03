@@ -8,8 +8,7 @@ class("Ceph").extends(Dino)
 function Ceph:init(x, y, theGameScene)
   Ceph.super.init(self, gfx.imagetable.new("img/ceph-table-64-64"), x, y, theGameScene)
 
-  self.rollSpeed = 4.0
-
+  self.name = "Ceph"
   self:addState("idle", 1, 1)
   self:addState("run", 1, 8, {tickStep = 3})
   self:addState("jump", 1, 1)

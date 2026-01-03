@@ -9,6 +9,9 @@ function Dino:init(imageTable, x, y, theGameScene)
   self.gameScene = theGameScene
   Dino.super.init(self, imageTable)
 
+  self.name = "SomeDino"
+  self.deathMessage = ""
+
   self:setCenter(0, 0)
   self:setZIndex(Z_INDEXES.DINO)
   self:setTag(COL_TAGS.DINO)
@@ -175,10 +178,16 @@ function Dino:handleMovementAndCollisions()
     self.isRiddenBy.xVelocity = self.xVelocity
     self.isRiddenBy.yVelocity = self.yVelocity
   end
+
+  if self.y > 240 then
+    self.deathMessage = "fell too far!"
+    self:die()
+  end
 end
 
 function Dino:handleHazardCollision()
   self.shouldDie = true
+  self.deathMessage = "got spiked!"
 end
 
 function Dino:handleCrackedCollision(other)
@@ -191,10 +200,12 @@ function Dino:die()
   self.yVelocity = 0
   self.isDead = true
   self:setCollisionsEnabled(false)
+  local deadMessage = self.name .. " " .. self.deathMessage .. "\n\nTry again!"
   pd.timer.performAfterDelay(200, function()
     -- self:setCollisionsEnabled(true)
     -- self.isDead = false
-    SCENE_MANAGER:switchScene(GameOverScene, "Try again!")
+    SCENE_MANAGER:switchScene(GameOverScene, deadMessage)
+    self.deathMessage = ""
   end)
 end
 

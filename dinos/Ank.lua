@@ -10,6 +10,7 @@ function Ank:init(x, y, theGameScene)
 
   self.rollSpeed = 4.0
 
+  self.name = "Ank"
   self:addState("idle", 1, 1)
   self:addState("run", 1, 8, {tickStep = 3})
   self:addState("jump", 1, 1)
@@ -73,6 +74,7 @@ end
 function Ank:handleHazardCollision()
   if self.currentState ~= "roll" and self.currentState ~= "curl" then
     self.shouldDie = true
+    self.deathMessage = "got spiked!"
   end
 end
 
