@@ -24,6 +24,8 @@ import "entities/CrackedStone"
 import "entities/Gate"
 import "entities/Log"
 
+import 'toyboxes/toyboxes.lua'
+
 local pd <const> = playdate
 local gfx <const> = pd.graphics
 
@@ -47,6 +49,8 @@ SCENE_MANAGER = SceneManager()
 CAMERA = FollowCamera()
 
 -- local scene = GameScene()
+
+acetate.init()
 
 GameOverScene("LITTLE DINO JOURNEY\n\nA to jump, Up/Down to change dino.\nUse the crank for dino power.\n\nGet all the dinos to the exit.\nWork together!")
 

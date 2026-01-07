@@ -139,11 +139,9 @@ function Dino:handleMovementAndCollisions()
         self.touchingGround = true
         self.chargeAvailable = true
         if collision.other:getTag() == COL_TAGS.DINO then
-          self.isRiding = collision.other
-          collision.other.isRiddenBy = self
-        elseif self.isRiding then
-          self.isRiding.isRiddenBy = nil
-          self.isRiding = nil
+          collision.other:startCarry(self)
+        elseif self.ridingDino then
+          self.ridingDino:stopCarry()
         end
       end
       if collision.normal.y == 1 then
@@ -174,9 +172,16 @@ function Dino:handleMovementAndCollisions()
     self:die()
   end
 
-  if self.isRiddenBy then
-    self.isRiddenBy.xVelocity = self.xVelocity
-    self.isRiddenBy.yVelocity = self.yVelocity
+  if self.carryingDino then
+    if self.touchingWall then
+      self.carryingDino.xVelocity = 0
+    else
+      self.carryingDino.xVelocity = self.xVelocity
+    end
+    if not self.carryingDino.ridingDino then
+      -- If it fell off, clean up
+      self:stopCarry()
+    end
   end
 
   if self.y > 240 then
@@ -233,7 +238,9 @@ function Dino:changeToJumpState()
 end
 
 function Dino:applyGravity()
-  if self.touchingGround or self.touchingCeiling then
+  if self.touchingGround then
+    self.yVelocity = 0
+  elseif self.touchingCeiling then
     self.yVelocity = 0
   else
     self.yVelocity += self.gravity
@@ -250,4 +257,26 @@ function Dino:applyDrag(drag)
   if self.touchingWall then
     self.xVelocity = 0
   end
+end
+
+function Dino:startCarry(otherDino)
+  self.canJump = false
+  self.carryingDino = otherDino
+  otherDino.ridingDino = self
+end
+
+function Dino:stopCarry()
+  self.canJump = true
+  if self.carryingDino then
+    self.carryingDino.ridingDino = nil
+  end
+  self.carryingDino = nil
+end
+
+function Dino:debugString()
+    local s = "state: " .. self.currentState
+    s = s .. "\n" .. "Y Velocity:" .. tostring(self.yVelocity)
+    s = s .. "\n" .. "Y Velocity:" .. tostring(self.touchingGround)
+    -- construct `s` using any properties belonging to your sprite
+    return s, false -- true indicates that substitutions are needed
 end

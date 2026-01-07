@@ -13,6 +13,7 @@ class("GameScene").extends(gfx.sprite)
 
 function GameScene:init()
   self:goToLevel("Level_0")
+  self:setSize(0,0)
 
   self.dinos = {Ank(spawnX, spawnY, self), Ceph(spawnX + 30, spawnY, self)}
 
