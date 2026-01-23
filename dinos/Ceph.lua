@@ -18,7 +18,7 @@ function Ceph:init(x, y, theGameScene)
 
   self.runSpeed = 3.0
   self.airSpeed = 3.0
-  self.jumpVelocity = -7
+  self.jumpVelocity = -8
 
   self.chargeAvailable = true
   self.chargeSpeed = 16
@@ -26,18 +26,14 @@ function Ceph:init(x, y, theGameScene)
   self.chargeDrag = 3
 
   self.collideRects = {
-    idle = {24, 40, 16, 24},
-    run  = {24, 40, 16, 24},
-    jump = {24, 40, 16, 24},
-    bow = {24, 40, 16, 24},
-    charge = {24, 40, 16, 24}
+    idle = {26, 44, 12, 20},
   }
 
   self:respawn()
   self:doSetCollideRect()
 end
 
-function Dino:handleState()
+function Ceph:handleState()
   if self.currentState == "jump" then
     if self.touchingGround then
       self:changeToIdleState()
@@ -94,8 +90,7 @@ function Ceph:handleInput()
   end
 end
 
-
-function Dino:handleCrackedCollision(other)
+function Ceph:handleCrackedCollision(other)
   if self.currentState == "charge" then
     other:doBreak()
   end
