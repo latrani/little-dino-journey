@@ -196,7 +196,7 @@ function Dino:handleHazardCollision()
 end
 
 function Dino:handleCrackedCollision(other)
-  print("Generic cracked collision")
+  -- Generally, do nothing
   return
 end
 

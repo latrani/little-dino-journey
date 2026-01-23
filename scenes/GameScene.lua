@@ -1,4 +1,4 @@
--- luacheck: globals LDtk GameScene Dino Ank Ceph Spikes CrackedStone
+-- luacheck: globals LDtk GameScene Dino Ank Zino Ceph Spikes CrackedStone Log
 -- luacheck: globals Gate FollowCamera SCENE_MANAGER GameOverScene CAMERA
 
 local pd <const> = playdate
@@ -15,7 +15,7 @@ function GameScene:init()
   self:goToLevel("Level_0")
   self:setSize(0,0)
 
-  self.dinos = {Ank(spawnX, spawnY, self), Ceph(spawnX + 30, spawnY, self)}
+  self.dinos = {Ank(spawnX, spawnY, self), Zino(spawnX + 20, spawnY, self), Ceph(spawnX + 40, spawnY, self)}
 
   self.activeDinoIndex = #self.dinos
   self:activateDino()
@@ -96,10 +96,8 @@ end
 
 function GameScene:update()
   if pd.buttonJustPressed(pd.kButtonUp) then
-    print("Up")
     self:cycleDino(1)
   elseif pd.buttonJustPressed(pd.kButtonDown) then
-    print("Doen")
     self:cycleDino(-1)
   end
 end

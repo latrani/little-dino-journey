@@ -4,8 +4,6 @@ import "CoreLibs/graphics"
 -- define the Acetate namespace before importing our settings and function definitions
 acetate = {}
 
-print "Hello world"
-
 import "settings"
 import "keyHandlers"
 import "focusHandling"

@@ -18,6 +18,7 @@ import "scenes/GameOverScene"
 import "dinos/Dino"
 import "dinos/Ank"
 import "dinos/Ceph"
+import "dinos/Zino"
 
 import "entities/Spikes"
 import "entities/CrackedStone"
