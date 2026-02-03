@@ -62,14 +62,12 @@ function Dino:activate()
   self:setZIndex(Z_INDEXES.ACTIVE_DINO)
   self:setPointerLocation(self.x, self.y)
   self.pointer:setVisible(true)
-  -- self:setTag(Z_INDEXES.ACTIVE_DINO)
 end
 
 function Dino:deactivate()
   self.isActive = false
   self:setZIndex(Z_INDEXES.DINO)
   self.pointer:setVisible(false)
-  -- self:setTag(COL_TAGS.DINO)
 end
 
 
