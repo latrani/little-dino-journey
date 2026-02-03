@@ -1,4 +1,4 @@
--- luacheck: globals AnimatedSprite Dino Z_INDEXES COL_TAGS SCENE_MANAGER GameOverScene
+-- luacheck: globals AnimatedSprite Dino Z_INDEXES COL_TAGS SCENE_MANAGER GameOverScene Pointer
 
 local pd <const> = playdate
 local gfx <const> = pd.graphics
@@ -38,11 +38,19 @@ function Dino:init(imageTable, x, y, theGameScene)
   self.shouldDie = false
   self.isDead = false
   self.atGoal = false
+
+  self.pointer = Pointer(x, y)
+  self.pointer:setVisible(false)
 end
 
 function Dino:setSpawn(x, y)
   self.spawnX = x
   self.spawnY = y
+end
+
+function Dino:setPointerLocation(x, y)
+  local collideRect = self:getCollideRect()
+  self.pointer:moveTo(x + collideRect.x + collideRect.width / 2, y + collideRect.y - 6)
 end
 
 function Dino:respawn()
@@ -52,12 +60,15 @@ end
 function Dino:activate()
   self.isActive = true
   self:setZIndex(Z_INDEXES.ACTIVE_DINO)
+  self:setPointerLocation(self.x, self.y)
+  self.pointer:setVisible(true)
   -- self:setTag(Z_INDEXES.ACTIVE_DINO)
 end
 
 function Dino:deactivate()
   self.isActive = false
   self:setZIndex(Z_INDEXES.DINO)
+  self.pointer:setVisible(false)
   -- self:setTag(COL_TAGS.DINO)
 end
 
@@ -124,7 +135,9 @@ function Dino:handleState()
 end
 
 function Dino:handleMovementAndCollisions()
-  local _, _, collisions, length = self:moveWithCollisions(self.x + self.xVelocity, self.y + self.yVelocity)
+  local actualX, actualY, collisions, length = self:moveWithCollisions(self.x + self.xVelocity, self.y + self.yVelocity)
+
+  self:setPointerLocation(actualX, actualY)
 
   self.touchingGround = false
   self.touchingWall = false

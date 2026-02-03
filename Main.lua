@@ -25,12 +25,15 @@ import "entities/CrackedStone"
 import "entities/Gate"
 import "entities/Log"
 
+import "entities/Pointer"
+
 import 'toyboxes/toyboxes.lua'
 
 local pd <const> = playdate
 local gfx <const> = pd.graphics
 
 Z_INDEXES = {
+  UI = 200,
   ACTIVE_DINO = 101,
   DINO = 100,
   WORLD = 1,

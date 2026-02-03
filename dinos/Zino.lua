@@ -8,7 +8,7 @@ class("Zino").extends(Dino)
 function Zino:init(x, y, theGameScene)
   Zino.super.init(self, gfx.imagetable.new("img/zino-table-64-64"), x, y, theGameScene)
 
-  self.name = "Ceph"
+  self.name = "Zino"
   self:addState("idle", 1, 1)
   self:addState("run", 1, 8, {tickStep = 3})
   self:addState("jump", 1, 1)

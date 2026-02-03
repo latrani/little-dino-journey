@@ -1,4 +1,4 @@
--- luacheck: globals Ank Dino COL_TAGS
+-- luacheck: globals Ank Dino COL_TAGS Pointer
 
 local pd <const> = playdate
 local gfx <const> = pd.graphics
